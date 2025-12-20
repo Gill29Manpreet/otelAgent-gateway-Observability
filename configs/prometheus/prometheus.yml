@@ -1,0 +1,136 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+        labels:
+          host: "docker-prometheus"
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: "(.*):.*"
+        target_label: instance
+        replacement: "$1"
+
+
+  - job_name: "grafana"
+    static_configs:
+      - targets: ["grafana:3000"]
+        labels:
+          host: "docker-grafana"
+      - targets: ["10.128.0.2:3000"]
+        labels:
+          host: "grafana-server"
+
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: "(.*):.*"
+        target_label: instance
+        replacement: "$1"
+
+
+  - job_name: "node"
+    static_configs:
+      - targets:
+          - "node-exporter:9100"    # local container
+        labels:
+          host: "docker-host"
+
+      - targets:
+          - "10.128.0.2:9100"      # grafana server
+        labels:
+          host: "grafana-server"
+
+      - targets:
+          - "10.128.0.8:9100"      # splunk server
+        labels:
+          host: "splunk-server"
+
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: "(.*):.*"
+        target_label: instance
+        replacement: "$1"
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          host: 'docker-host'
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: "(.*):.*"
+        target_label: instance
+        replacement: "$1"
+
+  - job_name: 'http-probe'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - "http://grafana:3000"
+          - "http://prometheus:9090"
+          - "http://splunk:8001"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  - job_name: 'tcp-probe'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - "10.128.0.2:22"
+          - "10.128.0.8:22"
+          - "localhost:22"
+          - "grafana:3000"
+          - "prometheus:9090"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  - job_name: 'icmp-probe'
+    metrics_path: /probe
+    params:
+      module: [icmp]
+    static_configs:
+      - targets:
+          - "8.8.8.8"
+          - "10.128.0.2"
+          - "10.128.0.8"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  - job_name: "process-exporter"
+    static_configs:
+      - targets: ["process-exporter:9256"]
+        labels:
+          host: "docker-host"
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: "(.*):.*"
+        target_label: instance
+        replacement: "$1"
+
+  - job_name: 'otel-collector'
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - otel-collector:8888

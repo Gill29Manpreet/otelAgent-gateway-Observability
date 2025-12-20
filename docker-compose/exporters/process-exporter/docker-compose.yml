@@ -1,0 +1,18 @@
+services:
+  process-exporter:
+    image: ncabatoff/process-exporter:latest
+    container_name: process-exporter
+    pid: host
+    ports:
+      - "9256:9256"
+    volumes:
+      - /proc:/host/proc:ro
+      - /opt/monitoring/process-exporter/config.yml:/config/config.yml:ro
+    command: ["--procfs", "/host/proc", "--config.path", "/config/config.yml"]
+    networks:
+      - monitor-net
+    restart: unless-stopped
+
+networks:
+  monitor-net:
+    external: true

@@ -1,0 +1,28 @@
+process_names:
+  - name: "prometheus"
+    cmdline:
+      - "prometheus"
+
+  - name: "grafana"
+    cmdline:
+      - "grafana-server"
+
+  - name: "splunk"
+    cmdline:
+      - "splunkd"
+
+  - name: "docker"
+    cmdline:
+      - "dockerd"
+
+  - name: "jaeger"
+    cmdline:
+      - "jaeger"
+
+  - name: "ssh"
+    cmdline:
+      - "sshd"
+
+  - name: "{{.Matches}}"
+    cmdline:
+      - ".+"

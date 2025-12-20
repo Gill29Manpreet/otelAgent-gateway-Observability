@@ -1,0 +1,17 @@
+services:
+  blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox
+    ports:
+      - "9115:9115"
+    volumes:
+      - /opt/monitoring/blackbox/blackbox.yml:/config/blackbox.yml:ro
+    command:
+      - "--config.file=/config/blackbox.yml"
+    networks:
+      - monitor-net
+    restart: unless-stopped
+
+networks:
+  monitor-net:
+    external: true

@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    hostname: splunk
+    ports:
+      - "8001:8000"   # Splunk Web
+      - "8088:8088"   # HEC
+      - "9997:9997"   # Forwarder
+    environment:
+      SPLUNK_GENERAL_TERMS: --accept-sgt-current-at-splunk-com
+      SPLUNK_START_ARGS: --accept-license
+      SPLUNK_PASSWORD: Changeme@123
+    volumes:
+      - splunk_data:/opt/splunk/var
+    networks:
+      - monitor-net
+    restart: unless-stopped
+
+volumes:
+  splunk_data:
+networks:
+  monitor-net:
+    external: true

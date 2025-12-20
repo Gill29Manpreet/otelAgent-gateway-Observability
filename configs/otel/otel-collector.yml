@@ -1,0 +1,65 @@
+receivers:
+  hostmetrics:
+    collection_interval: 60s
+    scrapers:
+      cpu: {}
+      memory: {}
+      disk: {}
+      filesystem: {}
+      load: {}
+      network: {}
+      paging: {}
+      processes: {}
+      system: {}
+
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+  resourcedetection:
+    detectors: [system, gcp]
+    override: true
+
+  resource/add_environment:
+    attributes:
+      - action: insert
+        key: deployment.environment
+        value: "lab"
+
+      - action: insert
+        key: service.name
+        value: "otel-agent"
+
+exporters:
+  otlp:
+    endpoint: 35.232.91.8:4317
+    tls:
+      insecure: true
+
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics, otlp]
+      processors: [resourcedetection, resource/add_environment, batch]
+      exporters: [otlp/gateway]
+
+    traces:
+      receivers: [otlp]
+      processors: [resourcedetection, resource/add_environment, batch]
+      exporters: [otlp/gateway]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/gateway]
