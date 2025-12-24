@@ -1,4 +1,17 @@
 receivers:
+  hostmetrics:
+    collection_interval: 60s
+    scrapers:
+      cpu: {}
+      memory: {}
+      disk: {}
+      filesystem: {}
+      load: {}
+      network: {}
+      paging: {}
+      processes: {}
+#      system: {}
+
   otlp:
     protocols:
       grpc:
@@ -9,29 +22,61 @@ receivers:
 processors:
   batch:
     timeout: 5s
-    send_batch_size: 1024
 
+  resource:
+    attributes:
+      - action: insert
+        key: service.name
+        value: "otel-gateway"
+      - action: insert
+        key: host.name
+        value: "otel-gateway-host"
+      - action: insert
+        key: host.id
+        value: "otel-gateway-host"
   resourcedetection:
-    detectors: [system]
-    override: true
-
+    detectors: [system, gcp]
+    override: false
 exporters:
-  debug:
-    verbosity: basic
+# 🔹 Splunk Observability
+#  otlphttp/splunk:
+#    endpoint: https://ingest.sg0.signalfx.com/v2/otlp
+#    headers:
+#      X-SF-TOKEN: "LFpIZu-TGRc76mCZozr8zgy"
 
-  otlp/jaeger:
-    endpoint: jaeger:4317
-    tls:
-      insecure: true
+  # 🔹 Jaeger (local)
+#  otlp/jaeger:
+#    endpoint: jaeger:4317
+#    tls:
+#      insecure: true
+
+  signalfx:
+    access_token: "LFpIZu-TGRc76mCZozr8zg"
+    ingest_url: "https://ingest.sg0.signalfx.com"
+    api_url: "https://api.sg0.signalfx.com"
+    sync_host_metadata: true
 
   otlp/splunk:
     endpoint: ingest.sg0.signalfx.com:443
     headers:
-      X-SF-TOKEN: "LFpIZu-TGRc76mCZozr8zg"
+     X-SF-TOKEN: "LFpIZu-TGRc76mCZozr8zg"
+
+  debug:
+    verbosity: basic
 
 service:
   pipelines:
+    metrics:
+      receivers: [hostmetrics, otlp]
+      processors: [resourcedetection,resource, batch]
+      exporters: [signalfx,otlp/splunk,debug]
+
     traces:
       receivers: [otlp]
-      processors: [resourcedetection, batch]
-      exporters: [debug, otlp/jaeger, otlp/splunk]
+      processors: [resource, batch]
+      exporters: [debug]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
