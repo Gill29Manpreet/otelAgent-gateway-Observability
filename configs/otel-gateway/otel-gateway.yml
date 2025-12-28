@@ -23,6 +23,11 @@ processors:
   batch:
     timeout: 5s
 
+  memory_limiter:
+    check_interval: 5s
+    limit_mib: 512
+    spike_limit_mib: 128
+
   resource:
     attributes:
       - action: insert
@@ -51,15 +56,26 @@ exporters:
 #      insecure: true
 
   signalfx:
-    access_token: "LFpIZu-TGRc76mCZozr8zg"
+    access_token: "6txeMjlFrh4nZoYnA52AIg"
     ingest_url: "https://ingest.sg0.signalfx.com"
     api_url: "https://api.sg0.signalfx.com"
     sync_host_metadata: true
 
-  otlp/splunk:
-    endpoint: ingest.sg0.signalfx.com:443
-    headers:
-     X-SF-TOKEN: "LFpIZu-TGRc76mCZozr8zg"
+#  otlp/splunk:
+#    endpoint: ingest.sg0.signalfx.com:443
+#    headers:
+#     X-SF-TOKEN: "LFpIZu-TGRc76mCZozr8zg"
+
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 4000
+
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
 
   debug:
     verbosity: basic
@@ -68,15 +84,15 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics, otlp]
-      processors: [resourcedetection,resource, batch]
-      exporters: [signalfx,otlp/splunk,debug]
+      processors: [memory_limiter,resourcedetection,resource, batch]
+      exporters: [signalfx,debug]
 
     traces:
       receivers: [otlp]
-      processors: [resource, batch]
+      processors: [memory_limiter,resource, batch]
       exporters: [debug]
 
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: [memory_limiter,batch]
       exporters: [debug]
