@@ -26,21 +26,25 @@ processors:
 
   resourcedetection:
     detectors: [system, gcp]
-    override: true
+    override: false
 
   resource/add_environment:
     attributes:
       - action: insert
         key: deployment.environment
         value: "lab"
-
       - action: insert
         key: service.name
         value: "otel-agent"
-
+      - action: insert
+        key: host.name
+        value: otel-agent-host
+      - action: insert
+        key: host.id
+        value: otel-agent-host
 exporters:
-  otlp:
-    endpoint: 35.232.91.8:4317
+  otlp/gateway:
+    endpoint: 10.128.0.11:4317
     tls:
       insecure: true
 
@@ -63,3 +67,4 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [otlp/gateway]
+
