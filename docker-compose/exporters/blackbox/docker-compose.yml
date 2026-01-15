@@ -5,7 +5,7 @@ services:
     ports:
       - "9115:9115"
     volumes:
-      - /opt/monitoring/blackbox/blackbox.yml:/config/blackbox.yml:ro
+      - /otelAgent-gateway-Observability/configs/blackbox/blackbox.yml:/config/blackbox.yml:ro
     command:
       - "--config.file=/config/blackbox.yml"
     networks:

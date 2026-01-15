@@ -28,11 +28,8 @@ processors:
     detectors: [system, gcp]
     override: false
 
-  resource/add_environment:
+  resource/metrics:
     attributes:
-      - action: insert
-        key: deployment.environment
-        value: "lab"
       - action: insert
         key: service.name
         value: "otel-agent"
@@ -42,6 +39,11 @@ processors:
       - action: insert
         key: host.id
         value: otel-agent-host
+  resource/traces:
+    attributes:
+      - action: insert
+        key: deployment.environment
+        value: "lab"
 exporters:
   otlp/gateway:
     endpoint: 10.128.0.11:4317
@@ -55,13 +57,13 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics, otlp]
-      processors: [resourcedetection, resource/add_environment, batch]
+      processors: [resourcedetection, resource/metrics, batch]
       exporters: [otlp/gateway]
 
     traces:
       receivers: [otlp]
-      processors: [resourcedetection, resource/add_environment, batch]
-      exporters: [otlp/gateway]
+      processors: [resourcedetection, resource/traces, batch]
+      exporters: [otlp/gateway,debug]
 
     logs:
       receivers: [otlp]
