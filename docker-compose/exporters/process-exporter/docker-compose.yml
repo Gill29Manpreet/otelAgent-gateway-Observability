@@ -7,7 +7,7 @@ services:
       - "9256:9256"
     volumes:
       - /proc:/host/proc:ro
-      - /opt/monitoring/process-exporter/config.yml:/config/config.yml:ro
+      - /otelAgent-gateway-Observability/configs/process-exporter/config.yml:/config/config.yml:ro
     command: ["--procfs", "/host/proc", "--config.path", "/config/config.yml"]
     networks:
       - monitor-net
