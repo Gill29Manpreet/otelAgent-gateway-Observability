@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  demo-app:
+    build: .
+    ports:
+      - "8080:8080"
+    networks:
+      - monitor-net
+networks:
+  monitor-net:
+    external: true

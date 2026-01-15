@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  service-b:
+    build: .
+    container_name: service-b
+    networks:
+      - monitor-net
+    ports:
+      - "8081:8081"
+
+networks:
+  monitor-net:
+    external: true
