@@ -31,6 +31,6 @@ def error():
 
 @app.get("/call-b")
 def call_b():
-    time.sleep(0.1)
-    response = requests.get("http://service-b:8081/work")
+    response = requests.get("http://service-b:8081/work-error")
+    response.raise_for_status()  # IMPORTANT
     return {"from_service_b": response.json()}
